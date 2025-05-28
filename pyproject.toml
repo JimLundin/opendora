@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "pydantic-extra-types[pycountry]>=2.10.4",
     "sqlmodel>=0.0.24",
 ]
 

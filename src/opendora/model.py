@@ -1,10 +1,38 @@
 from sqlmodel import SQLModel, Field
-from typing import ClassVar, Protocol
+from typing import Protocol
 from datetime import date
 from decimal import Decimal
+from pydantic import field_validator, model_validator, ValidationInfo
+from pydantic_extra_types.country import CountryAlpha2
+from pydantic_extra_types.currency_code import ISO4217
+from enum import StrEnum
 
 
-class B01_01(SQLModel, table=True):
+# Regex patterns for data validation
+LEI_PATTERN = r"^[0-9A-Z]{18}[0-9]{2}$"  # Legal Entity Identifier pattern
+ISO_CURRENCY_PATTERN = r"^[A-Z]{3}$"  # ISO 4217 currency code pattern
+ISO_COUNTRY_PATTERN = r"^[A-Z]{2}$"  # ISO 3166-1 alpha-2 country code pattern
+
+
+# Enumeration for entity types
+class EntityType(StrEnum):
+    BANK = "BANK"
+    INSURANCE = "INSURANCE"
+    INVESTMENT_FIRM = "INVESTMENT_FIRM"
+    PAYMENT_INSTITUTION = "PAYMENT_INSTITUTION"
+    ELECTRONIC_MONEY_INSTITUTION = "ELECTRONIC_MONEY_INSTITUTION"
+    OTHER = "OTHER"
+
+
+# Enumeration for criticality assessment
+class CriticalityAssessment(StrEnum):
+    CRITICAL = "CRITICAL"
+    IMPORTANT = "IMPORTANT"
+    NON_CRITICAL = "NON_CRITICAL"
+    NON_IMPORTANT = "NON_IMPORTANT"
+
+
+class B_01_01(SQLModel, table=True):
     """B.01.01 — Financial entity maintaining the register of information"""
 
     __table_code__ = "B.01.01"
@@ -14,16 +42,31 @@ class B01_01(SQLModel, table=True):
         primary_key=True,
         min_length=20,
         max_length=20,
+        regex=LEI_PATTERN,
         description="LEI of the entity maintaining the register of information",
     )
     c0020: str = Field(max_length=255, description="Name of the entity")
-    c0030: str = Field(min_length=2, max_length=2, description="Country of the entity")
+    c0030: CountryAlpha2 = Field(
+        min_length=2, max_length=2, description="Country of the entity"
+    )
     c0040: str = Field(max_length=255, description="Type of entity")
     c0050: str = Field(max_length=255, description="Competent Authority")
     c0060: date = Field(description="Date of the reporting")
 
+    @field_validator("c0040")
+    def validate_entity_type(cls, v: str) -> str:
+        """Validate entity type"""
+        # Check if the entity type is one of the standard types or a custom one
+        try:
+            return EntityType(v).value
+        except ValueError:
+            # If not a standard type, ensure it's not empty
+            if not v.strip():
+                raise ValueError("Entity type cannot be empty")
+            return v
 
-class B01_02(SQLModel, table=True):
+
+class B_01_02(SQLModel, table=True):
     """B.01.02 — List of financial entities within the scope of the register of information"""
 
     __table_code__ = "B.01.02"
@@ -32,10 +75,16 @@ class B01_02(SQLModel, table=True):
     )
 
     c0010: str = Field(
-        primary_key=True, min_length=20, max_length=20, description="LEI of the entity"
+        primary_key=True,
+        min_length=20,
+        max_length=20,
+        regex=LEI_PATTERN,
+        description="LEI of the entity",
     )
     c0020: str = Field(max_length=255, description="Name of the entity")
-    c0030: str = Field(min_length=2, max_length=2, description="Country of the entity")
+    c0030: CountryAlpha2 = Field(
+        min_length=2, max_length=2, description="Country of the entity"
+    )
     c0040: str = Field(max_length=255, description="Type of entity")
     c0050: str | None = Field(
         default=None,
@@ -44,7 +93,9 @@ class B01_02(SQLModel, table=True):
     )
     c0060: str | None = Field(
         default=None,
+        min_length=20,
         max_length=20,
+        regex=LEI_PATTERN,
         foreign_key=c0010,
         description="LEI of the direct parent undertaking of the financial entity",
     )
@@ -55,17 +106,18 @@ class B01_02(SQLModel, table=True):
     c0090: date | None = Field(
         default=None, description="Date of deletion in the Register of information"
     )
-    c0100: str | None = Field(
+    c0100: ISO4217 | None = Field(
         default=None, min_length=3, max_length=3, description="Currency"
     )
     c0110: Decimal | None = Field(
         default=None,
+        ge=0,
         decimal_places=2,
         description="Value of total assets - of the financial entity",
     )
 
 
-class B01_03(SQLModel, table=True):
+class B_01_03(SQLModel, table=True):
     """B.01.03 — List of branches"""
 
     __table_code__ = "B.01.03"
@@ -78,15 +130,19 @@ class B01_03(SQLModel, table=True):
     )
     c0020: str = Field(
         primary_key=True,
+        min_length=20,
         max_length=20,
-        foreign_key=B01_02.c0010,
+        regex=LEI_PATTERN,
+        foreign_key=B_01_02.c0010,
         description="LEI of the financial entity head office of the branch",
     )
     c0030: str = Field(max_length=255, description="Name of the branch")
-    c0040: str = Field(max_length=2, description="Country of the branch")
+    c0040: CountryAlpha2 = Field(
+        min_length=2, max_length=2, description="Country of the branch"
+    )
 
 
-class B02_01(SQLModel, table=True):
+class B_02_01(SQLModel, table=True):
     """B.02.01 — Contractual Arrangements – General Information"""
 
     __table_code__ = "B.02.01"
@@ -104,7 +160,7 @@ class B02_01(SQLModel, table=True):
         foreign_key=c0010,
         description="Overarching contractual arrangement reference number",
     )
-    c0040: str = Field(
+    c0040: ISO4217 = Field(
         min_length=3, max_length=3, description="Currency of the amount reported"
     )
     c0050: Decimal = Field(
@@ -113,7 +169,7 @@ class B02_01(SQLModel, table=True):
     )
 
 
-class B02_02(SQLModel, table=True):
+class B_02_02(SQLModel, table=True):
     """B.02.02 — Contractual Arrangements – Specific information"""
 
     __table_code__ = "B.02.02"
@@ -122,13 +178,14 @@ class B02_02(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
         primary_key=True,
         max_length=20,
-        foreign_key=B01_02.c0010,
+        regex=LEI_PATTERN,
+        foreign_key=B_01_02.c0010,
         description="LEI of the financial entity making use of the ICT service",
     )
     c0030: str = Field(
@@ -161,26 +218,26 @@ class B02_02(SQLModel, table=True):
         default=None,
         description="Notice period for the ICT third-party service provider",
     )
-    c0120: str | None = Field(
+    c0120: CountryAlpha2 | None = Field(
         default=None,
         min_length=2,
         max_length=2,
         description="Country of the governing law of the contractual arrangement",
     )
-    c0130: str = Field(
+    c0130: CountryAlpha2 = Field(
         primary_key=True,
         min_length=2,
         max_length=2,
         description="Country of provision of the ICT services",
     )
     c0140: bool = Field(description="Storage of data")
-    c0150: str = Field(
+    c0150: CountryAlpha2 = Field(
         primary_key=True,
         min_length=2,
         max_length=2,
         description="Location of the data at rest (storage)",
     )
-    c0160: str = Field(
+    c0160: CountryAlpha2 = Field(
         primary_key=True,
         min_length=2,
         max_length=2,
@@ -198,7 +255,7 @@ class B02_02(SQLModel, table=True):
     )
 
 
-class B02_03(SQLModel, table=True):
+class B_02_03(SQLModel, table=True):
     """B.02.03 — List of intra-group contractual arrangements"""
 
     __table_code__ = "B.02.03"
@@ -212,12 +269,12 @@ class B02_03(SQLModel, table=True):
     c0020: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Linked contractual arrangement with ICT third-party service provider",
     )
 
 
-class B03_01(SQLModel, table=True):
+class B_03_01(SQLModel, table=True):
     """B.03.01 — Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"""
 
     __table_code__ = "B.03.01"
@@ -226,19 +283,20 @@ class B03_01(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
-        foreign_key=B01_02.c0010,
+        regex=LEI_PATTERN,
+        foreign_key=B_01_02.c0010,
         description="LEI of the entity signing the contractual arrangement",
     )
 
 
-class B03_02(SQLModel, table=True):
+class B_03_02(SQLModel, table=True):
     """B.03.02 — Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"""
 
     __table_code__ = "B.03.02"
@@ -247,7 +305,7 @@ class B03_02(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
@@ -273,19 +331,20 @@ class B03_03(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
-        foreign_key=B01_02.c0010,
+        regex=LEI_PATTERN,
+        foreign_key=B_01_02.c0010,
         description="LEI of the intra-group entity providing ICT service",
     )
 
 
-class B04_01(SQLModel, table=True):
+class B_04_01(SQLModel, table=True):
     """B.04.01 — Financial entities making use of the ICT services"""
 
     __table_code__ = "B.04.01"
@@ -294,14 +353,15 @@ class B04_01(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
-        foreign_key=B01_02.c0010,
+        regex=LEI_PATTERN,
+        foreign_key=B_01_02.c0010,
         description="LEI of the financial entity",
     )
     c0030: bool = Field(
@@ -313,8 +373,44 @@ class B04_01(SQLModel, table=True):
         description="Identification code of the branch",
     )
 
+    @field_validator("c0010")
+    def validate_arrangement_ref(cls, v: str) -> str:
+        """Validate arrangement reference number format"""
+        if not v or not v.strip():
+            raise ValueError("Contractual arrangement reference number cannot be empty")
+        return v
 
-class B05_01(SQLModel, table=True):
+    @field_validator("c0040")
+    def validate_branch_id(cls, v: str, info: ValidationInfo) -> str:
+        """Validate branch ID based on the c0030 flag"""
+        # Get values from the validation context
+        values = info.data
+
+        # If entity is a branch, branch ID must be provided
+        if "c0030" in values and values["c0030"] is True:
+            if not v or not v.strip():
+                raise ValueError(
+                    "Branch identification code is required when entity is a branch"
+                )
+        # If entity is not a branch, we could have a default code or empty value based on requirements
+        # Here we'll use a placeholder value if not a branch
+        elif "c0030" in values and values["c0030"] is False:
+            if not v or not v.strip():
+                return "NOT_APPLICABLE"  # Or could return a default value if preferred
+        return v
+
+    @model_validator(mode="after")
+    def validate_entity_branch_consistency(self) -> "B_04_01":
+        """Ensure consistency between branch flag and branch code"""
+        if not self.c0030 and self.c0040 != "NOT_APPLICABLE" and self.c0040.strip():
+            # If not a branch, but branch code is provided (and not our placeholder)
+            raise ValueError(
+                "Branch code should not be provided when entity is not a branch"
+            )
+        return self
+
+
+class B_05_01(SQLModel, table=True):
     """B.05.01 — ICT third-party service provider"""
 
     __table_code__ = "B.05.01"
@@ -348,12 +444,12 @@ class B05_01(SQLModel, table=True):
     c0070: str = Field(
         max_length=255, description="Type of person of the third-party service provider"
     )
-    c0080: str = Field(
+    c0080: CountryAlpha2 = Field(
         min_length=2,
         max_length=2,
         description="Country of the third-party service provider's headquarters",
     )
-    c0090: str | None = Field(
+    c0090: ISO4217 | None = Field(
         default=None,
         min_length=3,
         max_length=3,
@@ -375,7 +471,7 @@ class B05_01(SQLModel, table=True):
     )
 
 
-class B05_02(SQLModel, table=True):
+class B_05_02(SQLModel, table=True):
     """B.05.02 — ICT service supply chains"""
 
     __table_code__ = "B.05.02"
@@ -384,7 +480,7 @@ class B05_02(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
@@ -393,7 +489,7 @@ class B05_02(SQLModel, table=True):
     c0030: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B05_01.c0010,
+        foreign_key=B_05_01.c0010,
         description="Identification code of the third-party service provider",
     )
     c0040: str | None = Field(
@@ -414,7 +510,7 @@ class B05_02(SQLModel, table=True):
     )
 
 
-class B06_01(SQLModel, table=True):
+class B_06_01(SQLModel, table=True):
     """B.06.01 — Functions identification"""
 
     __table_code__ = "B.06.01"
@@ -429,7 +525,7 @@ class B06_01(SQLModel, table=True):
         primary_key=True,
         min_length=20,
         max_length=20,
-        foreign_key=B01_02.c0010,
+        foreign_key=B_01_02.c0010,
         description="LEI of the financial entity",
     )
     c0050: str = Field(
@@ -448,7 +544,7 @@ class B06_01(SQLModel, table=True):
     )
 
 
-class B07_01(SQLModel, table=True):
+class B_07_01(SQLModel, table=True):
     """B.07.01 — Assessment of the ICT services"""
 
     __table_code__ = "B.07.01"
@@ -457,13 +553,13 @@ class B07_01(SQLModel, table=True):
     c0010: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B02_01.c0010,
+        foreign_key=B_02_01.c0010,
         description="Contractual arrangement reference number",
     )
     c0020: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B05_01.c0010,
+        foreign_key=B_05_01.c0010,
         description="Identification code of the third-party service provider",
     )
     c0030: str = Field(
@@ -503,7 +599,7 @@ class B07_01(SQLModel, table=True):
 
 
 # Reference table for ICT Service Types (if needed as separate table)
-class B08_01(SQLModel, table=True):
+class B_08_01(SQLModel, table=True):
     """Type of ICT Services reference table"""
 
     __table_code__ = "B.08.01"
@@ -519,7 +615,7 @@ class B08_01(SQLModel, table=True):
 
 
 class NamedModel(Protocol):
-    __table_display_name__: ClassVar[str]
+    __table_display_name__: str
 
 
 # Utility function to get table display name
