@@ -10,8 +10,6 @@ from enum import StrEnum
 
 # Regex patterns for data validation
 LEI_PATTERN = r"^[0-9A-Z]{18}[0-9]{2}$"  # Legal Entity Identifier pattern
-ISO_CURRENCY_PATTERN = r"^[A-Z]{3}$"  # ISO 4217 currency code pattern
-ISO_COUNTRY_PATTERN = r"^[A-Z]{2}$"  # ISO 3166-1 alpha-2 country code pattern
 
 
 # Enumeration for entity types
@@ -183,6 +181,7 @@ class B_02_02(SQLModel, table=True):
     )
     c0020: str = Field(
         primary_key=True,
+        min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
         foreign_key=B_01_02.c0010,
