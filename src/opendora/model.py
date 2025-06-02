@@ -51,18 +51,6 @@ class B_01_01(SQLModel, table=True):
     c0050: str = Field(max_length=255, description="Competent Authority")
     c0060: date = Field(description="Date of the reporting")
 
-    @field_validator("c0040")
-    def validate_entity_type(cls, v: str) -> str:
-        """Validate entity type"""
-        # Check if the entity type is one of the standard types or a custom one
-        try:
-            return EntityType(v).value
-        except ValueError:
-            # If not a standard type, ensure it's not empty
-            if not v.strip():
-                raise ValueError("Entity type cannot be empty")
-            return v
-
 
 class B_01_02(SQLModel, table=True):
     """B.01.02 — List of financial entities within the scope of the register of information"""
@@ -597,7 +585,6 @@ class B_07_01(SQLModel, table=True):
     )
 
 
-# Reference table for ICT Service Types (if needed as separate table)
 class B_08_01(SQLModel, table=True):
     """Type of ICT Services reference table"""
 
@@ -617,13 +604,11 @@ class NamedModel(Protocol):
     __name__: str
 
 
-# Utility function to get table display name
 def get_table_display_name(model_class: NamedModel) -> str:
     """Get the display name for a table model"""
     return model_class.__name__
 
 
-# Utility function to get column display name from description
 def get_column_display_name(model_class: SQLModel, column_name: str) -> str:
     """Get the display name for a column from its description"""
     field = model_class.model_fields.get(column_name)
