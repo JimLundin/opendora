@@ -33,8 +33,8 @@ class CriticalityAssessment(StrEnum):
 class B_01_01(SQLModel, table=True):
     """B.01.01 — Financial entity maintaining the register of information"""
 
-    __table_code__ = "B.01.01"
-    __table_display_name__ = "Financial entity maintaining the register of information"
+    __code__ = "B.01.01"
+    __name__ = "Financial entity maintaining the register of information"
 
     c0010: str = Field(
         primary_key=True,
@@ -67,8 +67,8 @@ class B_01_01(SQLModel, table=True):
 class B_01_02(SQLModel, table=True):
     """B.01.02 — List of financial entities within the scope of the register of information"""
 
-    __table_code__ = "B.01.02"
-    __table_display_name__ = (
+    __code__ = "B.01.02"
+    __name__ = (
         "List of financial entities within the scope of the register of information"
     )
 
@@ -118,8 +118,8 @@ class B_01_02(SQLModel, table=True):
 class B_01_03(SQLModel, table=True):
     """B.01.03 — List of branches"""
 
-    __table_code__ = "B.01.03"
-    __table_display_name__ = "List of branches"
+    __code__ = "B.01.03"
+    __name__ = "List of branches"
 
     c0010: str = Field(
         primary_key=True,
@@ -143,8 +143,8 @@ class B_01_03(SQLModel, table=True):
 class B_02_01(SQLModel, table=True):
     """B.02.01 — Contractual Arrangements – General Information"""
 
-    __table_code__ = "B.02.01"
-    __table_display_name__ = "Contractual Arrangements – General Information"
+    __code__ = "B.02.01"
+    __name__ = "Contractual Arrangements – General Information"
 
     c0010: str = Field(
         primary_key=True,
@@ -170,8 +170,8 @@ class B_02_01(SQLModel, table=True):
 class B_02_02(SQLModel, table=True):
     """B.02.02 — Contractual Arrangements – Specific information"""
 
-    __table_code__ = "B.02.02"
-    __table_display_name__ = "Contractual Arrangements – Specific information"
+    __code__ = "B.02.02"
+    __name__ = "Contractual Arrangements – Specific information"
 
     c0010: str = Field(
         primary_key=True,
@@ -257,8 +257,8 @@ class B_02_02(SQLModel, table=True):
 class B_02_03(SQLModel, table=True):
     """B.02.03 — List of intra-group contractual arrangements"""
 
-    __table_code__ = "B.02.03"
-    __table_display_name__ = "List of intra-group contractual arrangements"
+    __code__ = "B.02.03"
+    __name__ = "List of intra-group contractual arrangements"
 
     c0010: str = Field(
         primary_key=True,
@@ -276,8 +276,8 @@ class B_02_03(SQLModel, table=True):
 class B_03_01(SQLModel, table=True):
     """B.03.01 — Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"""
 
-    __table_code__ = "B.03.01"
-    __table_display_name__ = "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
+    __code__ = "B.03.01"
+    __name__ = "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
 
     c0010: str = Field(
         primary_key=True,
@@ -298,8 +298,8 @@ class B_03_01(SQLModel, table=True):
 class B_03_02(SQLModel, table=True):
     """B.03.02 — Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"""
 
-    __table_code__ = "B.03.02"
-    __table_display_name__ = "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
+    __code__ = "B.03.02"
+    __name__ = "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
 
     c0010: str = Field(
         primary_key=True,
@@ -319,11 +319,11 @@ class B_03_02(SQLModel, table=True):
     )
 
 
-class B03_03(SQLModel, table=True):
+class B_03_03(SQLModel, table=True):
     """B.03.03 — Entities signing the Contractual Arrangements for providing ICT service(s)"""
 
-    __table_code__ = "B.03.03"
-    __table_display_name__ = (
+    __code__ = "B.03.03"
+    __name__ = (
         "Entities signing the Contractual Arrangements for providing ICT service(s)"
     )
 
@@ -346,8 +346,8 @@ class B03_03(SQLModel, table=True):
 class B_04_01(SQLModel, table=True):
     """B.04.01 — Financial entities making use of the ICT services"""
 
-    __table_code__ = "B.04.01"
-    __table_display_name__ = "Financial entities making use of the ICT services"
+    __code__ = "B.04.01"
+    __name__ = "Financial entities making use of the ICT services"
 
     c0010: str = Field(
         primary_key=True,
@@ -412,8 +412,8 @@ class B_04_01(SQLModel, table=True):
 class B_05_01(SQLModel, table=True):
     """B.05.01 — ICT third-party service provider"""
 
-    __table_code__ = "B.05.01"
-    __table_display_name__ = "ICT third-party service provider"
+    __code__ = "B.05.01"
+    __name__ = "ICT third-party service provider"
 
     c0010: str = Field(
         primary_key=True,
@@ -473,8 +473,8 @@ class B_05_01(SQLModel, table=True):
 class B_05_02(SQLModel, table=True):
     """B.05.02 — ICT service supply chains"""
 
-    __table_code__ = "B.05.02"
-    __table_display_name__ = "ICT service supply chains"
+    __code__ = "B.05.02"
+    __name__ = "ICT service supply chains"
 
     c0010: str = Field(
         primary_key=True,
@@ -512,8 +512,8 @@ class B_05_02(SQLModel, table=True):
 class B_06_01(SQLModel, table=True):
     """B.06.01 — Functions identification"""
 
-    __table_code__ = "B.06.01"
-    __table_display_name__ = "Functions identification"
+    __code__ = "B.06.01"
+    __name__ = "Functions identification"
 
     c0010: str = Field(
         primary_key=True, max_length=255, description="Function identifier"
@@ -546,8 +546,8 @@ class B_06_01(SQLModel, table=True):
 class B_07_01(SQLModel, table=True):
     """B.07.01 — Assessment of the ICT services"""
 
-    __table_code__ = "B.07.01"
-    __table_display_name__ = "Assessment of the ICT services"
+    __code__ = "B.07.01"
+    __name__ = "Assessment of the ICT services"
 
     c0010: str = Field(
         primary_key=True,
@@ -601,8 +601,8 @@ class B_07_01(SQLModel, table=True):
 class B_08_01(SQLModel, table=True):
     """Type of ICT Services reference table"""
 
-    __table_code__ = "B.08.01"
-    __table_display_name__ = "Type of ICT Services"
+    __code__ = "B.08.01"
+    __name__ = "Type of ICT Services"
 
     identifier: str = Field(
         primary_key=True, max_length=50, description="Type of ICT services identifier"
@@ -614,13 +614,13 @@ class B_08_01(SQLModel, table=True):
 
 
 class NamedModel(Protocol):
-    __table_display_name__: str
+    __name__: str
 
 
 # Utility function to get table display name
 def get_table_display_name(model_class: NamedModel) -> str:
     """Get the display name for a table model"""
-    return model_class.__table_display_name__
+    return model_class.__name__
 
 
 # Utility function to get column display name from description
