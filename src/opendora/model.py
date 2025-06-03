@@ -32,13 +32,20 @@ class CriticalityAssessment(StrEnum):
     NON_IMPORTANT = "NON_IMPORTANT"
 
 
-class RegisterMaintainer(SQLModel, table=True):
+class NamedTable(Protocol):
+    table_code: ClassVar[str | None]
+    table_name: ClassVar[str]
+
+
+class BaseTable(NamedTable, SQLModel, table=True):
+    """Base table model"""
+
+
+class RegisterMaintainer(BaseTable):
     """B.01.01 — Financial entity maintaining the register of information"""
 
-    table_code: ClassVar[str] = "B.01.01"
-    table_name: ClassVar[str] = (
-        "Financial entity maintaining the register of information"
-    )
+    table_code = "B.01.01"
+    table_name = "Financial entity maintaining the register of information"
 
     lei: str = Field(
         primary_key=True,
@@ -59,11 +66,11 @@ class RegisterMaintainer(SQLModel, table=True):
     reporting_date: date = Field(title="0060", description="Date of the reporting")
 
 
-class RegisteredEntity(SQLModel, table=True):
+class RegisteredEntity(BaseTable):
     """B.01.02 — List of financial entities within the scope of the register of information"""
 
-    table_code: ClassVar[str] = "B.01.02"
-    table_name: ClassVar[str] = (
+    table_code = "B.01.02"
+    table_name = (
         "List of financial entities within the scope of the register of information"
     )
 
@@ -116,11 +123,11 @@ class RegisteredEntity(SQLModel, table=True):
     )
 
 
-class EntityBranch(SQLModel, table=True):
+class EntityBranch(BaseTable):
     """B.01.03 — List of branches"""
 
-    table_code: ClassVar[str] = "B.01.03"
-    table_name: ClassVar[str] = "List of branches"
+    table_code = "B.01.03"
+    table_name = "List of branches"
 
     branch_code: str = Field(
         primary_key=True,
@@ -143,11 +150,11 @@ class EntityBranch(SQLModel, table=True):
     )
 
 
-class ContractGeneral(SQLModel, table=True):
+class ContractGeneral(BaseTable):
     """B.02.01 — Contractual Arrangements – General Information"""
 
-    table_code: ClassVar[str] = "B.02.01"
-    table_name: ClassVar[str] = "Contractual Arrangements – General Information"
+    table_code = "B.02.01"
+    table_name = "Contractual Arrangements – General Information"
 
     reference_number: str = Field(
         primary_key=True,
@@ -178,11 +185,11 @@ class ContractGeneral(SQLModel, table=True):
     )
 
 
-class ContractSpecific(SQLModel, table=True):
+class ContractSpecific(BaseTable):
     """B.02.02 — Contractual Arrangements – Specific information"""
 
-    table_code: ClassVar[str] = "B.02.02"
-    table_name: ClassVar[str] = "Contractual Arrangements – Specific information"
+    table_code = "B.02.02"
+    table_name = "Contractual Arrangements – Specific information"
 
     reference_number: str = Field(
         primary_key=True,
@@ -289,11 +296,11 @@ class ContractSpecific(SQLModel, table=True):
     )
 
 
-class IntraGroupContract(SQLModel, table=True):
+class IntraGroupContract(BaseTable):
     """B.02.03 — List of intra-group contractual arrangements"""
 
-    table_code: ClassVar[str] = "B.02.03"
-    table_name: ClassVar[str] = "List of intra-group contractual arrangements"
+    table_code = "B.02.03"
+    table_name = "List of intra-group contractual arrangements"
 
     reference_number: str = Field(
         primary_key=True,
@@ -310,13 +317,11 @@ class IntraGroupContract(SQLModel, table=True):
     )
 
 
-class ContractReceiver(SQLModel, table=True):
+class ContractReceiver(BaseTable):
     """B.03.01 — Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"""
 
-    table_code: ClassVar[str] = "B.03.01"
-    table_name: ClassVar[str] = (
-        "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
-    )
+    table_code = "B.03.01"
+    table_name = "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
 
     reference_number: str = Field(
         primary_key=True,
@@ -336,13 +341,11 @@ class ContractReceiver(SQLModel, table=True):
     )
 
 
-class ContractProvider(SQLModel, table=True):
+class ContractProvider(BaseTable):
     """B.03.02 — Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"""
 
-    table_code: ClassVar[str] = "B.03.02"
-    table_name: ClassVar[str] = (
-        "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
-    )
+    table_code = "B.03.02"
+    table_name = "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
 
     reference_number: str = Field(
         primary_key=True,
@@ -365,11 +368,11 @@ class ContractProvider(SQLModel, table=True):
     )
 
 
-class IntraGroupProvider(SQLModel, table=True):
+class IntraGroupProvider(BaseTable):
     """B.03.03 — Entities signing the Contractual Arrangements for providing ICT service(s)"""
 
-    table_code: ClassVar[str] = "B.03.03"
-    table_name: ClassVar[str] = (
+    table_code = "B.03.03"
+    table_name = (
         "Entities signing the Contractual Arrangements for providing ICT service(s)"
     )
 
@@ -391,11 +394,11 @@ class IntraGroupProvider(SQLModel, table=True):
     )
 
 
-class ServiceUser(SQLModel, table=True):
+class ServiceUser(BaseTable):
     """B.04.01 — Financial entities making use of the ICT services"""
 
-    table_code: ClassVar[str] = "B.04.01"
-    table_name: ClassVar[str] = "Financial entities making use of the ICT services"
+    table_code = "B.04.01"
+    table_name = "Financial entities making use of the ICT services"
 
     reference_number: str = Field(
         primary_key=True,
@@ -465,11 +468,11 @@ class ServiceUser(SQLModel, table=True):
         return self
 
 
-class ThirdPartyProvider(SQLModel, table=True):
+class ThirdPartyProvider(BaseTable):
     """B.05.01 — ICT third-party service provider"""
 
-    table_code: ClassVar[str] = "B.05.01"
-    table_name: ClassVar[str] = "ICT third-party service provider"
+    table_code = "B.05.01"
+    table_name = "ICT third-party service provider"
 
     provider_code: str = Field(
         primary_key=True,
@@ -541,11 +544,11 @@ class ThirdPartyProvider(SQLModel, table=True):
     )
 
 
-class ServiceType(SQLModel, table=True):
+class ServiceType(BaseTable):
     """Type of ICT Services reference table"""
 
-    table_code: ClassVar[str | None] = None
-    table_name: ClassVar[str] = "Type of ICT Services"
+    table_code = None
+    table_name = "Type of ICT Services"
 
     identifier: str = Field(
         primary_key=True, max_length=50, description="Type of ICT services identifier"
@@ -556,11 +559,11 @@ class ServiceType(SQLModel, table=True):
     )
 
 
-class ServiceSupplyChain(SQLModel, table=True):
+class ServiceSupplyChain(BaseTable):
     """B.05.02 — ICT service supply chains"""
 
-    table_code: ClassVar[str] = "B.05.02"
-    table_name: ClassVar[str] = "ICT service supply chains"
+    table_code = "B.05.02"
+    table_name = "ICT service supply chains"
 
     reference_number: str = Field(
         primary_key=True,
@@ -604,11 +607,11 @@ class ServiceSupplyChain(SQLModel, table=True):
     )
 
 
-class Function(SQLModel, table=True):
+class Function(BaseTable):
     """B.06.01 — Functions identification"""
 
-    table_code: ClassVar[str] = "B.06.01"
-    table_name: ClassVar[str] = "Functions identification"
+    table_code = "B.06.01"
+    table_name = "Functions identification"
 
     identifier: str = Field(
         primary_key=True,
@@ -652,11 +655,11 @@ class Function(SQLModel, table=True):
     )
 
 
-class ServiceAssessment(SQLModel, table=True):
+class ServiceAssessment(BaseTable):
     """B.07.01 — Assessment of the ICT services"""
 
-    table_code: ClassVar[str] = "B.07.01"
-    table_name: ClassVar[str] = "Assessment of the ICT services"
+    table_code = "B.07.01"
+    table_name = "Assessment of the ICT services"
 
     reference_number: str = Field(
         primary_key=True,
@@ -720,11 +723,6 @@ class ServiceAssessment(SQLModel, table=True):
         title="0120",
         description="Identification of alternative ICT TPP",
     )
-
-
-class NamedTable(Protocol):
-    table_code: ClassVar[str]
-    table_name: ClassVar[str]
 
 
 def get_table_display_name(model_class: NamedTable) -> str:
