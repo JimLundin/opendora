@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 from sqlmodel import SQLModel, Field
-from typing import Protocol, ClassVar
 from datetime import date
 from decimal import Decimal
-from pydantic import field_validator, model_validator, ValidationInfo
 from pydantic_extra_types.country import CountryAlpha2
 from pydantic_extra_types.currency_code import ISO4217
 from enum import StrEnum
-
+from typing import ClassVar
 
 # Regex patterns for data validation
 LEI_PATTERN = r"^[0-9A-Z]{18}[0-9]{2}$"  # Legal Entity Identifier pattern
@@ -32,20 +30,13 @@ class CriticalityAssessment(StrEnum):
     NON_IMPORTANT = "NON_IMPORTANT"
 
 
-class NamedTable(Protocol):
-    table_code: ClassVar[str | None]
-    table_name: ClassVar[str]
-
-
-class BaseTable(NamedTable, SQLModel, table=True):
-    """Base table model"""
-
-
-class RegisterMaintainer(BaseTable):
+class RegisterMaintainer(SQLModel, table=True):
     """B.01.01 — Financial entity maintaining the register of information"""
 
-    table_code = "B.01.01"
-    table_name = "Financial entity maintaining the register of information"
+    table_code: ClassVar[str] = "B.01.01"
+    table_name: ClassVar[str] = (
+        "Financial entity maintaining the register of information"
+    )
 
     lei: str = Field(
         primary_key=True,
@@ -66,11 +57,11 @@ class RegisterMaintainer(BaseTable):
     reporting_date: date = Field(title="0060", description="Date of the reporting")
 
 
-class RegisteredEntity(BaseTable):
+class RegisteredEntity(SQLModel, table=True):
     """B.01.02 — List of financial entities within the scope of the register of information"""
 
-    table_code = "B.01.02"
-    table_name = (
+    table_code: ClassVar[str] = "B.01.02"
+    table_name: ClassVar[str] = (
         "List of financial entities within the scope of the register of information"
     )
 
@@ -98,7 +89,7 @@ class RegisteredEntity(BaseTable):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=lei,
+        foreign_key="registeredentity.lei",
         title="0060",
         description="LEI of the direct parent undertaking of the financial entity",
     )
@@ -123,11 +114,11 @@ class RegisteredEntity(BaseTable):
     )
 
 
-class EntityBranch(BaseTable):
+class EntityBranch(SQLModel, table=True):
     """B.01.03 — List of branches"""
 
-    table_code = "B.01.03"
-    table_name = "List of branches"
+    table_code: ClassVar[str] = "B.01.03"
+    table_name: ClassVar[str] = "List of branches"
 
     branch_code: str = Field(
         primary_key=True,
@@ -140,7 +131,7 @@ class EntityBranch(BaseTable):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=RegisteredEntity.lei,
+        foreign_key="registeredentity.lei",
         title="0020",
         description="LEI of the financial entity head office of the branch",
     )
@@ -150,11 +141,11 @@ class EntityBranch(BaseTable):
     )
 
 
-class ContractGeneral(BaseTable):
+class ContractGeneral(SQLModel, table=True):
     """B.02.01 — Contractual Arrangements – General Information"""
 
-    table_code = "B.02.01"
-    table_name = "Contractual Arrangements – General Information"
+    table_code: ClassVar[str] = "B.02.01"
+    table_name: ClassVar[str] = "Contractual Arrangements – General Information"
 
     reference_number: str = Field(
         primary_key=True,
@@ -168,7 +159,7 @@ class ContractGeneral(BaseTable):
     overarching_reference_number: str | None = Field(
         default=None,
         max_length=255,
-        foreign_key=reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0030",
         description="Overarching contractual arrangement reference number",
     )
@@ -185,16 +176,16 @@ class ContractGeneral(BaseTable):
     )
 
 
-class ContractSpecific(BaseTable):
+class ContractSpecific(SQLModel, table=True):
     """B.02.02 — Contractual Arrangements – Specific information"""
 
-    table_code = "B.02.02"
-    table_name = "Contractual Arrangements – Specific information"
+    table_code: ClassVar[str] = "B.02.02"
+    table_name: ClassVar[str] = "Contractual Arrangements – Specific information"
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -203,7 +194,7 @@ class ContractSpecific(BaseTable):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=RegisteredEntity.lei,
+        foreign_key="registeredentity.lei",
         title="0020",
         description="LEI of the financial entity making use of the ICT service",
     )
@@ -296,11 +287,11 @@ class ContractSpecific(BaseTable):
     )
 
 
-class IntraGroupContract(BaseTable):
+class IntraGroupContract(SQLModel, table=True):
     """B.02.03 — List of intra-group contractual arrangements"""
 
-    table_code = "B.02.03"
-    table_name = "List of intra-group contractual arrangements"
+    table_code: ClassVar[str] = "B.02.03"
+    table_name: ClassVar[str] = "List of intra-group contractual arrangements"
 
     reference_number: str = Field(
         primary_key=True,
@@ -311,22 +302,24 @@ class IntraGroupContract(BaseTable):
     linked_third_party_contract: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0020",
         description="Linked contractual arrangement with ICT third-party service provider",
     )
 
 
-class ContractReceiver(BaseTable):
+class ContractReceiver(SQLModel, table=True):
     """B.03.01 — Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"""
 
-    table_code = "B.03.01"
-    table_name = "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
+    table_code: ClassVar[str] = "B.03.01"
+    table_name: ClassVar[str] = (
+        "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
+    )
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -335,22 +328,24 @@ class ContractReceiver(BaseTable):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=RegisteredEntity.lei,
+        foreign_key="registeredentity.lei",
         title="0020",
         description="LEI of the entity signing the contractual arrangement",
     )
 
 
-class ContractProvider(BaseTable):
+class ContractProvider(SQLModel, table=True):
     """B.03.02 — Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"""
 
-    table_code = "B.03.02"
-    table_name = "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
+    table_code: ClassVar[str] = "B.03.02"
+    table_name: ClassVar[str] = (
+        "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
+    )
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -368,18 +363,18 @@ class ContractProvider(BaseTable):
     )
 
 
-class IntraGroupProvider(BaseTable):
+class IntraGroupProvider(SQLModel, table=True):
     """B.03.03 — Entities signing the Contractual Arrangements for providing ICT service(s)"""
 
-    table_code = "B.03.03"
-    table_name = (
+    table_code: ClassVar[str] = "B.03.03"
+    table_name: ClassVar[str] = (
         "Entities signing the Contractual Arrangements for providing ICT service(s)"
     )
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -388,22 +383,22 @@ class IntraGroupProvider(BaseTable):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=RegisteredEntity.lei,
+        foreign_key="registeredentity.lei",
         title="0020",
         description="LEI of the intra-group entity providing ICT service",
     )
 
 
-class ServiceUser(BaseTable):
+class ServiceUser(SQLModel, table=True):
     """B.04.01 — Financial entities making use of the ICT services"""
 
-    table_code = "B.04.01"
-    table_name = "Financial entities making use of the ICT services"
+    table_code: ClassVar[str] = "B.04.01"
+    table_name: ClassVar[str] = "Financial entities making use of the ICT services"
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -412,7 +407,7 @@ class ServiceUser(BaseTable):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=RegisteredEntity.lei,
+        foreign_key="registeredentity.lei",
         title="0020",
         description="LEI of the financial entity",
     )
@@ -427,52 +422,12 @@ class ServiceUser(BaseTable):
         description="Identification code of the branch",
     )
 
-    @field_validator("identification_code")
-    def validate_branch_code(cls, v: str, info: ValidationInfo) -> str:
-        """Validate identification code format"""
-        if not v or not v.strip():
-            raise ValueError("Identification code cannot be empty")
-        return v
 
-    @field_validator("identification_code")
-    def validate_branch_id(cls, v: str, info: ValidationInfo) -> str:
-        """Validate branch ID based on the c0030 flag"""
-        # Get values from the validation context
-        values = info.data
-
-        # If entity is a branch, branch ID must be provided
-        if "is_branch" in values and values["is_branch"]:
-            if not v or not v.strip():
-                raise ValueError(
-                    "Branch identification code is required when entity is a branch"
-                )
-        # If entity is not a branch, we could have a default code or empty value based on requirements
-        # Here we'll use a placeholder value if not a branch
-        elif "is_branch" in values and not values["is_branch"]:
-            if not v or not v.strip():
-                return "NOT_APPLICABLE"  # Or could return a default value if preferred
-        return v
-
-    @model_validator(mode="after")
-    def validate_entity_branch_consistency(self) -> ServiceUser:
-        """Ensure consistency between branch flag and branch code"""
-        if (
-            not self.is_branch
-            and self.branch_code != "NOT_APPLICABLE"
-            and self.branch_code.strip()
-        ):
-            # If not a branch, but branch code is provided (and not our placeholder)
-            raise ValueError(
-                "Branch code should not be provided when entity is not a branch"
-            )
-        return self
-
-
-class ThirdPartyProvider(BaseTable):
+class ThirdPartyProvider(SQLModel, table=True):
     """B.05.01 — ICT third-party service provider"""
 
-    table_code = "B.05.01"
-    table_name = "ICT third-party service provider"
+    table_code: ClassVar[str] = "B.05.01"
+    table_name: ClassVar[str] = "ICT third-party service provider"
 
     provider_code: str = Field(
         primary_key=True,
@@ -544,11 +499,11 @@ class ThirdPartyProvider(BaseTable):
     )
 
 
-class ServiceType(BaseTable):
+class ServiceType(SQLModel, table=True):
     """Type of ICT Services reference table"""
 
-    table_code = None
-    table_name = "Type of ICT Services"
+    table_code: ClassVar[None] = None
+    table_name: ClassVar[str] = "Type of ICT Services"
 
     identifier: str = Field(
         primary_key=True, max_length=50, description="Type of ICT services identifier"
@@ -559,16 +514,16 @@ class ServiceType(BaseTable):
     )
 
 
-class ServiceSupplyChain(BaseTable):
+class ServiceSupplyChain(SQLModel, table=True):
     """B.05.02 — ICT service supply chains"""
 
-    table_code = "B.05.02"
-    table_name = "ICT service supply chains"
+    table_code: ClassVar[str] = "B.05.02"
+    table_name: ClassVar[str] = "ICT service supply chains"
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -576,13 +531,13 @@ class ServiceSupplyChain(BaseTable):
         primary_key=True,
         max_length=255,
         title="0020",
-        foreign_key=ServiceType.identifier,
+        foreign_key="servicetype.identifier",
         description="Type of ICT services",
     )
     provider_code: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ThirdPartyProvider.provider_code,
+        foreign_key="thirdpartyprovider.provider_code",
         title="0030",
         description="Identification code of the third-party service provider",
     )
@@ -607,11 +562,11 @@ class ServiceSupplyChain(BaseTable):
     )
 
 
-class Function(BaseTable):
+class Function(SQLModel, table=True):
     """B.06.01 — Functions identification"""
 
-    table_code = "B.06.01"
-    table_name = "Functions identification"
+    table_code: ClassVar[str] = "B.06.01"
+    table_name: ClassVar[str] = "Functions identification"
 
     identifier: str = Field(
         primary_key=True,
@@ -629,7 +584,7 @@ class Function(BaseTable):
         primary_key=True,
         min_length=20,
         max_length=20,
-        foreign_key=RegisteredEntity.lei,
+        foreign_key="registeredentity.lei",
         description="LEI of the financial entity",
     )
     assessment: str = Field(
@@ -655,23 +610,23 @@ class Function(BaseTable):
     )
 
 
-class ServiceAssessment(BaseTable):
+class ServiceAssessment(SQLModel, table=True):
     """B.07.01 — Assessment of the ICT services"""
 
-    table_code = "B.07.01"
-    table_name = "Assessment of the ICT services"
+    table_code: ClassVar[str] = "B.07.01"
+    table_name: ClassVar[str] = "Assessment of the ICT services"
 
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ContractGeneral.reference_number,
+        foreign_key="contractgeneral.reference_number",
         title="0010",
         description="Contractual arrangement reference number",
     )
     provider_code: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=ThirdPartyProvider.provider_code,
+        foreign_key="thirdpartyprovider.provider_code",
         title="0020",
         description="Identification code of the third-party service provider",
     )
@@ -684,7 +639,7 @@ class ServiceAssessment(BaseTable):
         primary_key=True,
         max_length=255,
         title="0040",
-        foreign_key=ServiceType.identifier,
+        foreign_key="servicetype.identifier",
         description="Type of ICT services",
     )
     provider_substitutability: str = Field(
@@ -723,11 +678,6 @@ class ServiceAssessment(BaseTable):
         title="0120",
         description="Identification of alternative ICT TPP",
     )
-
-
-def get_table_display_name(model_class: NamedTable) -> str:
-    """Get the display name for a table model"""
-    return model_class.table_name
 
 
 def get_column_display_name(model_class: SQLModel, column_name: str) -> str:
