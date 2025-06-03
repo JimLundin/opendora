@@ -1,12 +1,21 @@
 from __future__ import annotations
 
+from sqlalchemy.orm import QueryableAttribute
 from sqlmodel import SQLModel, Field
 from datetime import date
 from decimal import Decimal
 from pydantic_extra_types.country import CountryAlpha2
 from pydantic_extra_types.currency_code import ISO4217
 from enum import StrEnum
-from typing import ClassVar
+from typing import ClassVar, cast, Any
+
+
+# Function to generate foreign key strings from columns
+# Does not work with self-referencing foreign keys
+def fk(col: Any) -> str:
+    attr = cast(QueryableAttribute[Any], col)
+    return f"{attr.class_.__tablename__}.{attr.key}"
+
 
 # Regex patterns for data validation
 LEI_PATTERN = r"^[0-9A-Z]{18}[0-9]{2}$"  # Legal Entity Identifier pattern
@@ -131,7 +140,7 @@ class EntityBranch(SQLModel, table=True):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key="registeredentity.lei",
+        foreign_key=fk(RegisteredEntity.lei),
         title="0020",
         description="LEI of the financial entity head office of the branch",
     )
@@ -185,7 +194,7 @@ class ContractSpecific(SQLModel, table=True):
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -194,7 +203,7 @@ class ContractSpecific(SQLModel, table=True):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key="registeredentity.lei",
+        foreign_key=fk(RegisteredEntity.lei),
         title="0020",
         description="LEI of the financial entity making use of the ICT service",
     )
@@ -302,7 +311,7 @@ class IntraGroupContract(SQLModel, table=True):
     linked_third_party_contract: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0020",
         description="Linked contractual arrangement with ICT third-party service provider",
     )
@@ -319,7 +328,7 @@ class ContractReceiver(SQLModel, table=True):
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -328,7 +337,7 @@ class ContractReceiver(SQLModel, table=True):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key="registeredentity.lei",
+        foreign_key=fk(RegisteredEntity.lei),
         title="0020",
         description="LEI of the entity signing the contractual arrangement",
     )
@@ -345,7 +354,7 @@ class ContractProvider(SQLModel, table=True):
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -374,7 +383,7 @@ class IntraGroupProvider(SQLModel, table=True):
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -383,7 +392,7 @@ class IntraGroupProvider(SQLModel, table=True):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key="registeredentity.lei",
+        foreign_key=fk(RegisteredEntity.lei),
         title="0020",
         description="LEI of the intra-group entity providing ICT service",
     )
@@ -398,7 +407,7 @@ class ServiceUser(SQLModel, table=True):
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0010",
         description="Contractual arrangement reference number",
     )
@@ -407,7 +416,7 @@ class ServiceUser(SQLModel, table=True):
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key="registeredentity.lei",
+        foreign_key=fk(RegisteredEntity.lei),
         title="0020",
         description="LEI of the financial entity",
     )
@@ -531,13 +540,13 @@ class ServiceSupplyChain(SQLModel, table=True):
         primary_key=True,
         max_length=255,
         title="0020",
-        foreign_key="servicetype.identifier",
+        foreign_key=fk(ServiceType.identifier),
         description="Type of ICT services",
     )
     provider_code: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="thirdpartyprovider.provider_code",
+        foreign_key=fk(ThirdPartyProvider.provider_code),
         title="0030",
         description="Identification code of the third-party service provider",
     )
@@ -584,7 +593,7 @@ class Function(SQLModel, table=True):
         primary_key=True,
         min_length=20,
         max_length=20,
-        foreign_key="registeredentity.lei",
+        foreign_key=fk(RegisteredEntity.lei),
         description="LEI of the financial entity",
     )
     assessment: str = Field(
@@ -619,14 +628,14 @@ class ServiceAssessment(SQLModel, table=True):
     reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="contractgeneral.reference_number",
+        foreign_key=fk(ContractGeneral.reference_number),
         title="0010",
         description="Contractual arrangement reference number",
     )
     provider_code: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key="thirdpartyprovider.provider_code",
+        foreign_key=fk(ThirdPartyProvider.provider_code),
         title="0020",
         description="Identification code of the third-party service provider",
     )
@@ -639,7 +648,7 @@ class ServiceAssessment(SQLModel, table=True):
         primary_key=True,
         max_length=255,
         title="0040",
-        foreign_key="servicetype.identifier",
+        foreign_key=fk(ServiceType.identifier),
         description="Type of ICT services",
     )
     provider_substitutability: str = Field(
