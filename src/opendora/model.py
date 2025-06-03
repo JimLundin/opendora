@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from sqlmodel import SQLModel, Field
-from typing import Protocol
+from typing import Protocol, ClassVar
 from datetime import date
 from decimal import Decimal
 from pydantic import field_validator, model_validator, ValidationInfo
@@ -30,566 +32,520 @@ class CriticalityAssessment(StrEnum):
     NON_IMPORTANT = "NON_IMPORTANT"
 
 
-class B_01_01(SQLModel, table=True):
+class MaintainingEntity(SQLModel, table=True):
     """B.01.01 — Financial entity maintaining the register of information"""
 
-    __code__ = "B.01.01"
-    __name__ = "Financial entity maintaining the register of information"
+    table_code: ClassVar[str] = "B.01.01"
+    table_name: ClassVar[str] = (
+        "Financial entity maintaining the register of information"
+    )
 
-    c0010: str = Field(
+    lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
+        title="0010",
         description="LEI of the entity maintaining the register of information",
     )
-    c0020: str = Field(max_length=255, description="Name of the entity")
-    c0030: CountryAlpha2 = Field(
-        min_length=2, max_length=2, description="Country of the entity"
+    name: str = Field(max_length=255, title="0020", description="Name of the entity")
+    country: CountryAlpha2 = Field(
+        min_length=2, max_length=2, title="0030", description="Country of the entity"
     )
-    c0040: str = Field(max_length=255, description="Type of entity")
-    c0050: str = Field(max_length=255, description="Competent Authority")
-    c0060: date = Field(description="Date of the reporting")
+    type: str = Field(max_length=255, title="0040", description="Type of entity")
+    competent_authority: str = Field(
+        max_length=255, title="0050", description="Competent Authority"
+    )
+    reporting_date: date = Field(title="0060", description="Date of the reporting")
 
 
-class B_01_02(SQLModel, table=True):
+class RegisterEntity(SQLModel, table=True):
     """B.01.02 — List of financial entities within the scope of the register of information"""
 
-    __code__ = "B.01.02"
-    __name__ = (
+    table_code: ClassVar[str] = "B.01.02"
+    table_name: ClassVar[str] = (
         "List of financial entities within the scope of the register of information"
     )
 
-    c0010: str = Field(
+    lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
+        title="0010",
         description="LEI of the entity",
     )
-    c0020: str = Field(max_length=255, description="Name of the entity")
-    c0030: CountryAlpha2 = Field(
-        min_length=2, max_length=2, description="Country of the entity"
+    name: str = Field(max_length=255, title="0020", description="Name of the entity")
+    country: CountryAlpha2 = Field(
+        min_length=2, max_length=2, title="0030", description="Country of the entity"
     )
-    c0040: str = Field(max_length=255, description="Type of entity")
-    c0050: str | None = Field(
+    type: str = Field(max_length=255, title="0040", description="Type of entity")
+    hierarchy: str | None = Field(
         default=None,
         max_length=255,
+        title="0050",
         description="Hierarchy of the entity within the group (where applicable)",
     )
-    c0060: str | None = Field(
+    parent_lei: str | None = Field(
         default=None,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=c0010,
+        foreign_key=lei,
+        title="0060",
         description="LEI of the direct parent undertaking of the financial entity",
     )
-    c0070: date = Field(description="Date of last update")
-    c0080: date = Field(
-        description="Date of integration in the Register of information"
+    last_update_date: date = Field(title="0070", description="Date of last update")
+    integration_date: date = Field(
+        title="0080", description="Date of integration in the Register of information"
     )
-    c0090: date | None = Field(
-        default=None, description="Date of deletion in the Register of information"
+    deletion_date: date | None = Field(
+        default=None,
+        title="0090",
+        description="Date of deletion in the Register of information",
     )
-    c0100: ISO4217 | None = Field(
-        default=None, min_length=3, max_length=3, description="Currency"
+    currency: ISO4217 | None = Field(
+        default=None, min_length=3, max_length=3, title="0100", description="Currency"
     )
-    c0110: Decimal | None = Field(
+    total_assets: Decimal | None = Field(
         default=None,
         ge=0,
         decimal_places=2,
+        title="0110",
         description="Value of total assets - of the financial entity",
     )
 
 
-class B_01_03(SQLModel, table=True):
+class Branch(SQLModel, table=True):
     """B.01.03 — List of branches"""
 
-    __code__ = "B.01.03"
-    __name__ = "List of branches"
+    table_code: ClassVar[str] = "B.01.03"
+    table_name: ClassVar[str] = "List of branches"
 
-    c0010: str = Field(
+    branch_code: str = Field(
         primary_key=True,
         max_length=255,
-        description="Identification code of the branch",
+        title="0010",
+        description="Identification table_code of the branch",
     )
-    c0020: str = Field(
+    head_office_lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=B_01_02.c0010,
+        foreign_key=RegisterEntity.lei,
+        title="0020",
         description="LEI of the financial entity head office of the branch",
     )
-    c0030: str = Field(max_length=255, description="Name of the branch")
-    c0040: CountryAlpha2 = Field(
-        min_length=2, max_length=2, description="Country of the branch"
+    name: str = Field(max_length=255, title="0030", description="Name of the branch")
+    country: CountryAlpha2 = Field(
+        min_length=2, max_length=2, title="0040", description="Country of the branch"
     )
 
 
-class B_02_01(SQLModel, table=True):
+class GeneralInformation(SQLModel, table=True):
     """B.02.01 — Contractual Arrangements – General Information"""
 
-    __code__ = "B.02.01"
-    __name__ = "Contractual Arrangements – General Information"
+    table_code: ClassVar[str] = "B.02.01"
+    table_name: ClassVar[str] = "Contractual Arrangements – General Information"
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
+        title="0010",
         description="Contractual arrangement reference number",
     )
-    c0020: str = Field(max_length=255, description="Type of contractual arrangement")
-    c0030: str | None = Field(
+    type: str = Field(
+        max_length=255, title="0020", description="Type of contractual arrangement"
+    )
+    overarching_reference_number: str | None = Field(
         default=None,
         max_length=255,
-        foreign_key=c0010,
+        foreign_key=reference_number,
+        title="0030",
         description="Overarching contractual arrangement reference number",
     )
-    c0040: ISO4217 = Field(
-        min_length=3, max_length=3, description="Currency of the amount reported"
+    currency: ISO4217 = Field(
+        min_length=3,
+        max_length=3,
+        title="0040",
+        description="Currency of the amount reported",
     )
-    c0050: Decimal = Field(
+    annual_expense_or_estimated_cost: Decimal = Field(
         decimal_places=2,
+        title="0050",
         description="Annual expense or estimated cost of the contractual arrangement for the past year",
     )
 
 
-class B_02_02(SQLModel, table=True):
+class SpecificInformation(SQLModel, table=True):
     """B.02.02 — Contractual Arrangements – Specific information"""
 
-    __code__ = "B.02.02"
-    __name__ = "Contractual Arrangements – Specific information"
+    table_code: ClassVar[str] = "B.02.02"
+    table_name: ClassVar[str] = "Contractual Arrangements – Specific information"
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B_02_01.c0010,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
         description="Contractual arrangement reference number",
     )
-    c0020: str = Field(
+    lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=B_01_02.c0010,
+        foreign_key=RegisterEntity.lei,
+        title="0020",
         description="LEI of the financial entity making use of the ICT service",
     )
-    c0030: str = Field(
+    tpp_code: str = Field(
         primary_key=True,
         max_length=255,
-        description="Identification code of the third-party service provider",
+        title="0030",
+        description="Identification table_code of the third-party service provider",
     )
-    c0040: str | None = Field(
+    tpp_code_type: str | None = Field(
         default=None,
         max_length=255,
-        description="Type of code to identify the third-party service provider",
+        title="0040",
+        description="Type of table_code to identify the third-party service provider",
     )
-    c0050: str = Field(
-        primary_key=True, max_length=255, description="Function identifier"
+    function_identifier: str = Field(
+        primary_key=True,
+        max_length=255,
+        title="0050",
+        description="Function identifier",
     )
-    c0060: str = Field(
-        primary_key=True, max_length=255, description="Type of ICT services"
+    ict_services_type: str = Field(
+        primary_key=True,
+        max_length=255,
+        title="0060",
+        description="Type of ICT services",
     )
-    c0070: date = Field(description="Start date of the contractual arrangement")
-    c0080: date = Field(description="End date of the contractual arrangement")
-    c0090: str | None = Field(
+    start_date: date = Field(
+        title="0070", description="Start date of the contractual arrangement"
+    )
+    end_date: date = Field(
+        title="0080", description="End date of the contractual arrangement"
+    )
+    reason_of_termination_or_ending: str | None = Field(
         default=None,
         max_length=255,
+        title="0090",
         description="Reason of the termination or ending of the contractual arrangement",
     )
-    c0100: int | None = Field(
-        default=None, description="Notice period for the financial entity"
-    )
-    c0110: int | None = Field(
+    entity_notice_period: int | None = Field(
         default=None,
+        title="0100",
+        description="Notice period for the financial entity",
+    )
+    tpp_notice_period: int | None = Field(
+        default=None,
+        title="0110",
         description="Notice period for the ICT third-party service provider",
     )
-    c0120: CountryAlpha2 | None = Field(
+    governing_law_country: CountryAlpha2 | None = Field(
         default=None,
         min_length=2,
         max_length=2,
+        title="0120",
         description="Country of the governing law of the contractual arrangement",
     )
-    c0130: CountryAlpha2 = Field(
+    ict_services_country: CountryAlpha2 = Field(
         primary_key=True,
         min_length=2,
         max_length=2,
+        title="0130",
         description="Country of provision of the ICT services",
     )
-    c0140: bool = Field(description="Storage of data")
-    c0150: CountryAlpha2 = Field(
+    data_storage: bool = Field(title="0140", description="Storage of data")
+    data_at_rest_location: CountryAlpha2 = Field(
         primary_key=True,
         min_length=2,
         max_length=2,
+        title="0150",
         description="Location of the data at rest (storage)",
     )
-    c0160: CountryAlpha2 = Field(
+    data_processing_location: CountryAlpha2 = Field(
         primary_key=True,
         min_length=2,
         max_length=2,
+        title="0160",
         description="Location of management of the data (processing)",
     )
-    c0170: str | None = Field(
+    tpp_data_stored_sensitiveness: str | None = Field(
         default=None,
         max_length=255,
+        title="0170",
         description="Sensitiveness of the data stored by the ICT third-party service provider",
     )
-    c0180: str | None = Field(
+    ict_service_reliance: str | None = Field(
         default=None,
         max_length=255,
+        title="0180",
         description="Level of reliance on the ICT service supporting the critical or important function",
     )
 
 
-class B_02_03(SQLModel, table=True):
+class IntraGroup(SQLModel, table=True):
     """B.02.03 — List of intra-group contractual arrangements"""
 
-    __code__ = "B.02.03"
-    __name__ = "List of intra-group contractual arrangements"
+    table_code: ClassVar[str] = "B.02.03"
+    table_name: ClassVar[str] = "List of intra-group contractual arrangements"
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
+        title="0010",
         description="Contractual arrangement with ICT intra-group service provider",
     )
-    c0020: str = Field(
+    linked_contractual_arrangement_with_ict_tpp: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B_02_01.c0010,
+        foreign_key=GeneralInformation.reference_number,
+        title="0020",
         description="Linked contractual arrangement with ICT third-party service provider",
     )
 
 
-class B_03_01(SQLModel, table=True):
+class ReceivingSigningEntity(SQLModel, table=True):
     """B.03.01 — Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"""
 
-    __code__ = "B.03.01"
-    __name__ = "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
+    table_code: ClassVar[str] = "B.03.01"
+    table_name: ClassVar[str] = (
+        "Entities signing the Contractual Arrangements for receiving ICT service(s) or on behalf of the entities making use of the ICT service(s)"
+    )
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B_02_01.c0010,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
         description="Contractual arrangement reference number",
     )
-    c0020: str = Field(
+    lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=B_01_02.c0010,
+        foreign_key=RegisterEntity.lei,
+        title="0020",
         description="LEI of the entity signing the contractual arrangement",
     )
 
 
-class B_03_02(SQLModel, table=True):
+class SigningServiceProvider(SQLModel, table=True):
     """B.03.02 — Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"""
 
-    __code__ = "B.03.02"
-    __name__ = "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
+    table_code: ClassVar[str] = "B.03.02"
+    table_name: ClassVar[str] = (
+        "Third-party service providers signing the Contractual Arrangements for providing ICT service(s)"
+    )
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B_02_01.c0010,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
         description="Contractual arrangement reference number",
     )
-    c0020: str = Field(
+    tpp_code: str = Field(
         primary_key=True,
         max_length=255,
-        description="Identification code of the third-party service provider",
+        title="0020",
+        description="Identification table_code of the third-party service provider",
     )
-    c0030: str | None = Field(
+    tpp_code_type: str | None = Field(
         default=None,
         max_length=255,
-        description="Type of code of the third-party service provider",
+        title="0030",
+        description="Type of table_code of the third-party service provider",
     )
 
 
-class B_03_03(SQLModel, table=True):
+class ProvidingSigningEntity(SQLModel, table=True):
     """B.03.03 — Entities signing the Contractual Arrangements for providing ICT service(s)"""
 
-    __code__ = "B.03.03"
-    __name__ = (
+    table_code: ClassVar[str] = "B.03.03"
+    table_name: ClassVar[str] = (
         "Entities signing the Contractual Arrangements for providing ICT service(s)"
     )
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B_02_01.c0010,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
         description="Contractual arrangement reference number",
     )
-    c0020: str = Field(
+    lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=B_01_02.c0010,
+        foreign_key=RegisterEntity.lei,
+        title="0020",
         description="LEI of the intra-group entity providing ICT service",
     )
 
 
-class B_04_01(SQLModel, table=True):
+class UsingEntity(SQLModel, table=True):
     """B.04.01 — Financial entities making use of the ICT services"""
 
-    __code__ = "B.04.01"
-    __name__ = "Financial entities making use of the ICT services"
+    table_code: ClassVar[str] = "B.04.01"
+    table_name: ClassVar[str] = "Financial entities making use of the ICT services"
 
-    c0010: str = Field(
+    reference_number: str = Field(
         primary_key=True,
         max_length=255,
-        foreign_key=B_02_01.c0010,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
         description="Contractual arrangement reference number",
     )
-    c0020: str = Field(
+    lei: str = Field(
         primary_key=True,
         min_length=20,
         max_length=20,
         regex=LEI_PATTERN,
-        foreign_key=B_01_02.c0010,
+        foreign_key=RegisterEntity.lei,
+        title="0020",
         description="LEI of the financial entity",
     )
-    c0030: bool = Field(
-        description="Is the entity making use of the ICT services a branch of a financial entity?"
+    is_branch: bool = Field(
+        title="0030",
+        description="Is the entity making use of the ICT services a branch of a financial entity?",
     )
-    c0040: str = Field(
+    branch_code: str = Field(
         primary_key=True,
         max_length=255,
-        description="Identification code of the branch",
+        title="0040",
+        description="Identification table_code of the branch",
     )
 
-    @field_validator("c0010")
-    def validate_arrangement_ref(cls, v: str) -> str:
-        """Validate arrangement reference number format"""
+    @field_validator("identification_code")
+    def validate_branch_code(cls, v: str, info: ValidationInfo) -> str:
+        """Validate identification table_code format"""
         if not v or not v.strip():
-            raise ValueError("Contractual arrangement reference number cannot be empty")
+            raise ValueError("Identification table_code cannot be empty")
         return v
 
-    @field_validator("c0040")
+    @field_validator("identification_code")
     def validate_branch_id(cls, v: str, info: ValidationInfo) -> str:
         """Validate branch ID based on the c0030 flag"""
         # Get values from the validation context
         values = info.data
 
         # If entity is a branch, branch ID must be provided
-        if "c0030" in values and values["c0030"] is True:
+        if "is_branch" in values and values["is_branch"]:
             if not v or not v.strip():
                 raise ValueError(
-                    "Branch identification code is required when entity is a branch"
+                    "Branch identification table_code is required when entity is a branch"
                 )
-        # If entity is not a branch, we could have a default code or empty value based on requirements
+        # If entity is not a branch, we could have a default table_code or empty value based on requirements
         # Here we'll use a placeholder value if not a branch
-        elif "c0030" in values and values["c0030"] is False:
+        elif "is_branch" in values and not values["is_branch"]:
             if not v or not v.strip():
                 return "NOT_APPLICABLE"  # Or could return a default value if preferred
         return v
 
     @model_validator(mode="after")
-    def validate_entity_branch_consistency(self) -> "B_04_01":
-        """Ensure consistency between branch flag and branch code"""
-        if not self.c0030 and self.c0040 != "NOT_APPLICABLE" and self.c0040.strip():
-            # If not a branch, but branch code is provided (and not our placeholder)
+    def validate_entity_branch_consistency(self) -> UsingEntity:
+        """Ensure consistency between branch flag and branch table_code"""
+        if (
+            not self.is_branch
+            and self.branch_code != "NOT_APPLICABLE"
+            and self.branch_code.strip()
+        ):
+            # If not a branch, but branch table_code is provided (and not our placeholder)
             raise ValueError(
-                "Branch code should not be provided when entity is not a branch"
+                "Branch table_code should not be provided when entity is not a branch"
             )
         return self
 
 
-class B_05_01(SQLModel, table=True):
+class ServiceProvider(SQLModel, table=True):
     """B.05.01 — ICT third-party service provider"""
 
-    __code__ = "B.05.01"
-    __name__ = "ICT third-party service provider"
+    table_code: ClassVar[str] = "B.05.01"
+    table_name: ClassVar[str] = "ICT third-party service provider"
 
-    c0010: str = Field(
+    tpp_code: str = Field(
         primary_key=True,
         max_length=255,
-        description="Identification code of the third-party service provider",
+        title="0010",
+        description="Identification table_code of the third-party service provider",
     )
-    c0020: str = Field(
-        max_length=255, description="Type of code of the third-party service provider"
+    tpp_code_type: str = Field(
+        max_length=255,
+        title="0020",
+        description="Type of table_code of the third-party service provider",
     )
-    c0030: int | None = Field(
+    additional_identification_code: int | None = Field(
         default=None,
-        description="Additional identification code of the third-party service provider",
+        title="0030",
+        description="Additional identification table_code of the third-party service provider",
     )
-    c0040: str | None = Field(
+    additional_identification_code_type: str | None = Field(
         default=None,
         max_length=255,
-        description="Type of additional identification code of the third-party service provider",
+        title="0040",
+        description="Type of additional identification table_code of the third-party service provider",
     )
-    c0050: str = Field(
-        max_length=255, description="Legal name of the third-party service provider"
+    legal_name: str = Field(
+        max_length=255,
+        title="0050",
+        description="Legal name of the third-party service provider",
     )
-    c0060: str | None = Field(
+    name_in_latin_alphabet: str | None = Field(
         default=None,
         max_length=255,
+        title="0060",
         description="Name of the ICT third-party service provider in Latin alphabet",
     )
-    c0070: str = Field(
-        max_length=255, description="Type of person of the third-party service provider"
+    person_type: str = Field(
+        max_length=255,
+        title="0070",
+        description="Type of person of the third-party service provider",
     )
-    c0080: CountryAlpha2 = Field(
+    country_of_headquarters: CountryAlpha2 = Field(
         min_length=2,
         max_length=2,
+        title="0080",
         description="Country of the third-party service provider's headquarters",
     )
-    c0090: ISO4217 | None = Field(
+    currency: ISO4217 | None = Field(
         default=None,
         min_length=3,
         max_length=3,
+        title="0090",
         description="Currency of the amount reported",
     )
-    c0100: Decimal | None = Field(
+    total_annual_expense_or_estimated_cost: Decimal | None = Field(
         default=None,
         decimal_places=2,
+        title="0100",
         description="Total annual expense or estimated cost of the third-party service provider",
     )
-    c0110: str = Field(
+    ultimate_parent_undertaking_tpp_code: str = Field(
         max_length=255,
-        description="Identification code of the third-party service provider's ultimate parent undertaking",
+        title="0110",
+        description="Identification table_code of the third-party service provider's ultimate parent undertaking",
     )
-    c0120: str | None = Field(
+    ultimate_parent_undertaking_tpp_code_type: str | None = Field(
         default=None,
         max_length=255,
-        description="Type of code of the third-party service provider's ultimate parent undertaking",
+        title="0120",
+        description="Type of table_code of the third-party service provider's ultimate parent undertaking",
     )
 
 
-class B_05_02(SQLModel, table=True):
-    """B.05.02 — ICT service supply chains"""
-
-    __code__ = "B.05.02"
-    __name__ = "ICT service supply chains"
-
-    c0010: str = Field(
-        primary_key=True,
-        max_length=255,
-        foreign_key=B_02_01.c0010,
-        description="Contractual arrangement reference number",
-    )
-    c0020: str = Field(
-        primary_key=True, max_length=255, description="Type of ICT services"
-    )
-    c0030: str = Field(
-        primary_key=True,
-        max_length=255,
-        foreign_key=B_05_01.c0010,
-        description="Identification code of the third-party service provider",
-    )
-    c0040: str | None = Field(
-        default=None,
-        max_length=255,
-        description="Type of code of the third-party service provider",
-    )
-    c0050: int = Field(primary_key=True, description="Rank")
-    c0060: str = Field(
-        primary_key=True,
-        max_length=255,
-        description="Identification code of the recipient of sub-contracted ICT services",
-    )
-    c0070: str | None = Field(
-        default=None,
-        max_length=255,
-        description="Type of code of the recipient of sub-contracted ICT services",
-    )
-
-
-class B_06_01(SQLModel, table=True):
-    """B.06.01 — Functions identification"""
-
-    __code__ = "B.06.01"
-    __name__ = "Functions identification"
-
-    c0010: str = Field(
-        primary_key=True, max_length=255, description="Function identifier"
-    )
-    c0020: str = Field(max_length=255, description="Licenced activity")
-    c0030: str = Field(max_length=255, description="Function name")
-    c0040: str = Field(
-        primary_key=True,
-        min_length=20,
-        max_length=20,
-        foreign_key=B_01_02.c0010,
-        description="LEI of the financial entity",
-    )
-    c0050: str = Field(
-        max_length=255, description="Criticality or importance assessment"
-    )
-    c0060: str = Field(
-        max_length=255, description="Reasons for criticality or importance"
-    )
-    c0070: date = Field(
-        description="Date of the last assessment of criticality or importance"
-    )
-    c0080: int = Field(description="Recovery time objective of the function")
-    c0090: int = Field(description="Recovery point objective of the function")
-    c0100: str = Field(
-        max_length=255, description="Impact of discontinuing the function"
-    )
-
-
-class B_07_01(SQLModel, table=True):
-    """B.07.01 — Assessment of the ICT services"""
-
-    __code__ = "B.07.01"
-    __name__ = "Assessment of the ICT services"
-
-    c0010: str = Field(
-        primary_key=True,
-        max_length=255,
-        foreign_key=B_02_01.c0010,
-        description="Contractual arrangement reference number",
-    )
-    c0020: str = Field(
-        primary_key=True,
-        max_length=255,
-        foreign_key=B_05_01.c0010,
-        description="Identification code of the third-party service provider",
-    )
-    c0030: str = Field(
-        max_length=255, description="Type of code of the third-party service provider"
-    )
-    c0040: str = Field(
-        primary_key=True, max_length=255, description="Type of ICT services"
-    )
-    c0050: str = Field(
-        max_length=255,
-        description="Substitutability of the ICT third-party service provider",
-    )
-    c0060: str | None = Field(
-        default=None,
-        max_length=255,
-        description="Reason if the ICT third-party service provider is considered not substitutable or difficult to be substitutable",
-    )
-    c0070: date = Field(
-        description="Date of the last audit on the ICT third-party service provider"
-    )
-    c0080: bool = Field(description="Existence of an exit plan")
-    c0090: str = Field(
-        max_length=255,
-        description="Possibility of reintegration of the contracted ICT service",
-    )
-    c0100: str = Field(
-        max_length=255, description="Impact of discontinuing the ICT services"
-    )
-    c0110: bool = Field(
-        description="Are there alternative ICT third-party service providers identified?"
-    )
-    c0120: str | None = Field(
-        default=None,
-        max_length=255,
-        description="Identification of alternative ICT TPP",
-    )
-
-
-class B_08_01(SQLModel, table=True):
+class ICTServicesType(SQLModel, table=True):
     """Type of ICT Services reference table"""
 
-    __code__ = "B.08.01"
-    __name__ = "Type of ICT Services"
+    table_code: ClassVar[str | None] = None
+    table_name: ClassVar[str] = "Type of ICT Services"
 
     identifier: str = Field(
         primary_key=True, max_length=50, description="Type of ICT services identifier"
@@ -600,13 +556,181 @@ class B_08_01(SQLModel, table=True):
     )
 
 
-class NamedModel(Protocol):
-    __name__: str
+class SupplyChain(SQLModel, table=True):
+    """B.05.02 — ICT service supply chains"""
+
+    table_code: ClassVar[str] = "B.05.02"
+    table_name: ClassVar[str] = "ICT service supply chains"
+
+    reference_number: str = Field(
+        primary_key=True,
+        max_length=255,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
+        description="Contractual arrangement reference number",
+    )
+    ict_services_type: str = Field(
+        primary_key=True,
+        max_length=255,
+        title="0020",
+        foreign_key=ICTServicesType.identifier,
+        description="Type of ICT services",
+    )
+    tpp_code: str = Field(
+        primary_key=True,
+        max_length=255,
+        foreign_key=ServiceProvider.tpp_code,
+        title="0030",
+        description="Identification table_code of the third-party service provider",
+    )
+    tpp_code_type: str | None = Field(
+        default=None,
+        max_length=255,
+        title="0040",
+        description="Type of table_code of the third-party service provider",
+    )
+    rank: int = Field(primary_key=True, title="0050", description="Rank")
+    recipient_code: str = Field(
+        primary_key=True,
+        max_length=255,
+        title="0060",
+        description="Identification table_code of the recipient of sub-contracted ICT services",
+    )
+    recipient_code_type: str | None = Field(
+        default=None,
+        max_length=255,
+        description="Type of table_code of the recipient of sub-contracted ICT services",
+    )
 
 
-def get_table_display_name(model_class: NamedModel) -> str:
+class FunctionIdentification(SQLModel, table=True):
+    """B.06.01 — Functions identification"""
+
+    table_code: ClassVar[str] = "B.06.01"
+    table_name: ClassVar[str] = "Functions identification"
+
+    identifier: str = Field(
+        primary_key=True,
+        max_length=255,
+        title="0010",
+        description="Function identifier",
+    )
+    licensed_activity: str = Field(
+        max_length=255, title="0020", description="Licenced activity"
+    )
+    function_name: str = Field(
+        max_length=255, title="0030", description="Function name"
+    )
+    lei: str = Field(
+        primary_key=True,
+        min_length=20,
+        max_length=20,
+        foreign_key=RegisterEntity.lei,
+        description="LEI of the financial entity",
+    )
+    assessment: str = Field(
+        max_length=255, title="0040", description="Criticality or importance assessment"
+    )
+    reasons: str = Field(
+        max_length=255,
+        title="0050",
+        description="Reasons for criticality or importance",
+    )
+    assessment_date: date = Field(
+        title="0060",
+        description="Date of the last assessment of criticality or importance",
+    )
+    recovery_time_objective: int = Field(
+        title="0070", description="Recovery time objective of the function"
+    )
+    recovery_point_objective: int = Field(
+        title="0080", description="Recovery point objective of the function"
+    )
+    impact_of_discontinuing: str = Field(
+        max_length=255, title="0090", description="Impact of discontinuing the function"
+    )
+
+
+class Assessment(SQLModel, table=True):
+    """B.07.01 — Assessment of the ICT services"""
+
+    table_code: ClassVar[str] = "B.07.01"
+    table_name: ClassVar[str] = "Assessment of the ICT services"
+
+    reference_number: str = Field(
+        primary_key=True,
+        max_length=255,
+        foreign_key=GeneralInformation.reference_number,
+        title="0010",
+        description="Contractual arrangement reference number",
+    )
+    tpp_code: str = Field(
+        primary_key=True,
+        max_length=255,
+        foreign_key=ServiceProvider.tpp_code,
+        title="0020",
+        description="Identification table_code of the third-party service provider",
+    )
+    tpp_code_type: str = Field(
+        max_length=255,
+        title="0030",
+        description="Type of table_code of the third-party service provider",
+    )
+    ict_services_type: str = Field(
+        primary_key=True,
+        max_length=255,
+        title="0040",
+        foreign_key=ICTServicesType.identifier,
+        description="Type of ICT services",
+    )
+    ict_tpp_substitutability: str = Field(
+        max_length=255,
+        title="0050",
+        description="Substitutability of the ICT third-party service provider",
+    )
+    reason_if_ict_tpp_is_not_substitutable_or_difficult_to_be_substitutable: (
+        str | None
+    ) = Field(
+        default=None,
+        max_length=255,
+        title="0060",
+        description="Reason if the ICT third-party service provider is considered not substitutable or difficult to be substitutable",
+    )
+    ict_tpp_last_audit_date: date = Field(
+        title="0070",
+        description="Date of the last audit on the ICT third-party service provider",
+    )
+    has_exit_plan: bool = Field(title="0080", description="Existence of an exit plan")
+    possibility_of_reintegration: str = Field(
+        max_length=255,
+        title="0090",
+        description="Possibility of reintegration of the contracted ICT service",
+    )
+    discontinuing_impact: str = Field(
+        max_length=255,
+        title="0100",
+        description="Impact of discontinuing the ICT services",
+    )
+    alternative_ict_tpp_identified: bool = Field(
+        title="0110",
+        description="Are there alternative ICT third-party service providers identified?",
+    )
+    alternative_ict_tpp_identification: str | None = Field(
+        default=None,
+        max_length=255,
+        title="0120",
+        description="Identification of alternative ICT TPP",
+    )
+
+
+class NamedTable(Protocol):
+    table_code: ClassVar[str]
+    table_name: ClassVar[str]
+
+
+def get_table_display_name(model_class: NamedTable) -> str:
     """Get the display name for a table model"""
-    return model_class.__name__
+    return model_class.table_name
 
 
 def get_column_display_name(model_class: SQLModel, column_name: str) -> str:
